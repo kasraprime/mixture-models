@@ -6,6 +6,7 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 import tqdm
+import matplotlib.pyplot as plt
 
 def mnist_loader(data_type):    
     """Setup MNIST data loaders."""
@@ -24,12 +25,12 @@ def mnist_loader(data_type):
     
     return train_loader, test_loader
 
-def train(data_type):
+def train(data_type,epoch_num):
 
     train_loader, test_loader = mnist_loader(data_type)
 
-    for epoch in tqdm(range(10)):
-        for data in train_loader:
+    for epoch in tqdm(range(epoch_num)):
+        for data in train_loader:            
             break
 
 
@@ -40,5 +41,6 @@ def train(data_type):
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_type', default='float', type=str)
+    parser.add_argument('--epoch_num', default=10, type=int)    
     args = parser.parse_args()
-    train(args.data_type)
+    train(args.data_type,args.epoch_num)
