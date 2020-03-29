@@ -34,4 +34,5 @@ for epoch in tqdm(range(10)):
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_type', default='float', type=str)
+    args = parser.parse_args()
     mnist_loader(args.data_type)
