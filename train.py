@@ -24,15 +24,21 @@ def mnist_loader(data_type):
     
     return train_loader, test_loader
 
-train_loader, test_loader = mnist_loader()
+def train(data_type):
 
-for epoch in tqdm(range(10)):
-    for data in train_loader:
-        break
+    train_loader, test_loader = mnist_loader(data_type)
+
+    for epoch in tqdm(range(10)):
+        for data in train_loader:
+            break
+
+
+
+
 
 
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_type', default='float', type=str)
     args = parser.parse_args()
-    mnist_loader(args.data_type)
+    train(args.data_type)
