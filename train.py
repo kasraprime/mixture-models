@@ -41,12 +41,25 @@ def Simplex(K):
 
 
 
-def ComputePosterior(data_i, component_k, pi, theta):
+def ComputePosterior(data_i, component_k, pi, theta, K_mixture):
         theta[component_k]
+        numerator = 0 
+        denominator = 0        
         current_posterior_gamma_ik = 0
+
+        # Computing numerator
         for d in range(len(data_i)):
-            
-            for k in range(K_mixture):
+            numerator = numerator * ( (theta[component_k][d]**data_i[d]) * ( (1 - theta[component_k][d])**(1 - data_i[d]) ) )
+        
+        # Computing denominator
+        for k in range(K_mixture):
+            temp = 0
+            for d in range(len(data_i)):
+                temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
+            denominator = denominator + (pi[k] * temp)
+
+        current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
+        return current_posterior_gamma_ik
 
 
 
@@ -76,7 +89,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
-                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
+                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 for d in range(J_parameter_dimension):
                     # is it okay if I use posterior_gamma_ik that is computed outside this for?
