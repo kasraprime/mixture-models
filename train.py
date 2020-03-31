@@ -75,6 +75,8 @@ def ComputeMarginal(K_mixture, train_loader, pi, theta):
                 temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             sum_k = sum_k + (pi[k] * temp)
         marginal = marginal * sum_k
+    
+    return marginal
 
 
 
@@ -120,7 +122,8 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
         pi = (pi_numerator + alpha) / ( sum(alpha) + len(train_loader)) # Shall I have a loop or it works in python
 
         epoch_list.append(epoch)
-        marginal_log_like.append()
+        marginal = ComputeMarginal(K_mixture, train_loader, pi, theta)
+        marginal_log_like.append(marginal)
 
     # plot marginal log likelihood for each epoch
     plt.plot(epoch_list,marginal_log_like)
