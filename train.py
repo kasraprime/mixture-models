@@ -89,7 +89,7 @@ def train(data_type,epoch_num,batch_size,K_mixture,J_parameter_dimension):
 
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_type', default='float', type=str)
+    parser.add_argument('--data_type', default='binary', type=str)
     parser.add_argument('--epoch_num', default=10, type=int)
     parser.add_argument('--batch_size', default=1, type=int)
     parser.add_argument('--K_mixture', default=10, type=int)
