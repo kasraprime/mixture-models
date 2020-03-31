@@ -9,7 +9,7 @@ import tqdm
 import matplotlib.pyplot as plt
 
 def mnist_loader(data_type,batch_size):
-    """Setup MNIST data loaders."""
+    """Setup MNIST data loader."""
     
     # Load datasets.
     if data_type == 'float':
@@ -40,27 +40,25 @@ def Simplex(K):
     return Z
 
 
-
 def ComputePosterior(data_i, component_k, pi, theta, K_mixture):
-        theta[component_k]
-        numerator = 0 
-        denominator = 0        
+
         current_posterior_gamma_ik = 0
 
         # Computing numerator
+        numerator = 1
         for d in range(len(data_i)):
             numerator = numerator * ( (theta[component_k][d]**data_i[d]) * ( (1 - theta[component_k][d])**(1 - data_i[d]) ) )
         
         # Computing denominator
+        denominator = 0
         for k in range(K_mixture):
-            temp = 0
+            temp = 1
             for d in range(len(data_i)):
                 temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             denominator = denominator + (pi[k] * temp)
 
         current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
         return current_posterior_gamma_ik
-
 
 
 def ComputeMarginal(K_mixture, train_loader, pi, theta):
@@ -70,17 +68,13 @@ def ComputeMarginal(K_mixture, train_loader, pi, theta):
         data_i = data_i.view(-1)
         sum_k = 0
         for k in range(K_mixture):
-            temp = 0
+            temp = 1
             for d in range(len(data_i)):
                 temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             sum_k = sum_k + (pi[k] * temp)
         marginal = marginal * sum_k
     
     return marginal
-
-
-
-
 
 
 def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
@@ -131,7 +125,6 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
     plt.xlabel('epoch')
     plt.ylabel('marginal log likelihood')
     plt.savefig('Marginal.pdf')
-
 
 
 if __name__ == '__main__':
