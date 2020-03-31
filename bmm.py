@@ -24,7 +24,7 @@ def mnist_loader(data_type,batch_size):
     train_loader = DataLoader(train_dataset, **kwargs)
     test_loader = DataLoader(test_dataset, **kwargs)
     
-    return train_loader, test_loader
+    return train_loader, test_loader, len(train_dataset)
 
 
 def Simplex(K):
@@ -41,20 +41,20 @@ def Simplex(K):
     return Z
 
 
-def ComputePosterior(data_i, component_k, pi, theta, K_mixture, device):
+def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
 
         current_posterior_gamma_ik = 0
 
         # Computing numerator
         numerator = 1
-        for d in range(len(data_i)):
+        for d in range(J_parameter_dimension):
             numerator = numerator * ( (theta[component_k][d]**data_i[d]) * ( (1 - theta[component_k][d])**(1 - data_i[d]) ) )
         
         # Computing denominator
         denominator = 0
         for k in range(K_mixture):
             temp = 1
-            for d in range(len(data_i)):
+            for d in range(J_parameter_dimension):
                 temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             denominator = denominator + (pi[k] * temp)
 
@@ -62,16 +62,16 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, device):
         return current_posterior_gamma_ik
 
 
-def ComputeMarginal(K_mixture, train_loader, pi, theta, device):
+def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
     marginal = 0
     for i,data in enumerate(train_loader):
         data_i = data[0].to(device)
         data_i = torch.squeeze(data_i)
-        data_i = data_i.view(-1)
+        data_i = data_i.view(batch_size, -1)
         sum_k = 0
         for k in range(K_mixture):
             temp = 1
-            for d in range(len(data_i)):
+            for d in range(J_parameter_dimension):
                 temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             sum_k = sum_k + (pi[k] * temp)
         marginal = marginal + math.log(sum_k)
@@ -81,7 +81,7 @@ def ComputeMarginal(K_mixture, train_loader, pi, theta, device):
 
 def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, device):
     """pi is a vector of length K, theta is of shape K*J, and in my case K is 10 and J=D=784"""
-    train_loader, test_loader = mnist_loader(data_type, batch_size)
+    train_loader, test_loader, N_number_data = mnist_loader(data_type, batch_size)
 
     # initializing pi in simplex(K-1), and theta of shape K*J
     pi = Simplex(K_mixture)
@@ -102,25 +102,25 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
             data_i = data[0].to(device)
             data_i = torch.squeeze(data_i)
             # convert the shape of tensor from 28*28 to 784
-            data_i = data_i.view(-1)
+            data_i = data_i.view(batch_size,-1)
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
-                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture, device)
+                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 for d in range(J_parameter_dimension):
                     # is it okay if I use posterior_gamma_ik that is computed outside this for?
                     #posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
                     theta_numerator[k][d] = theta_numerator[k][d] + (posterior_gamma_ik * data_i[d])
                     theta_denominator[k][d] = theta_denominator[k][d] + posterior_gamma_ik
-            print('one data point is done, data i:', i)
+            print('one batch is done, batch:', (i+1)*batch_size)
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
-        pi = (pi_numerator + alpha) / ( sum(alpha) + len(train_loader)) # Shall I have a loop or it works in python
+        pi = (pi_numerator + alpha) / ( sum(alpha) + N_number_data) # Shall I have a loop or it works in python
 
         epoch_list.append(epoch)
-        marginal = ComputeMarginal(K_mixture, train_loader, pi, theta, device)
+        marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
         print('epoch:', epoch, 'marginal log likelihood:', marginal )
         marginal_log_like.append(marginal)
 
