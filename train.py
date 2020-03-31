@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 import tqdm
 import matplotlib.pyplot as plt
 
-def mnist_loader(data_type,batch_size):    
+def mnist_loader(data_type,batch_size):
     """Setup MNIST data loaders."""
     
     # Load datasets.
@@ -19,14 +19,14 @@ def mnist_loader(data_type,batch_size):
         train_dataset = MNIST('data/pytorch_data/MNIST', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(), lambda x:x>0, lambda x: x.float()]))
         test_dataset = MNIST('data/pytorch_data/MNIST', train=False, download=True, transform=transforms.Compose([transforms.ToTensor(), lambda x:x>0, lambda x: x.float()]))
 
-    kwargs = {'num_workers': 8, 'pin_memory': True, 'batch_size': batch_size, 'shuffle': False} 
+    kwargs = {'num_workers': 8, 'pin_memory': True, 'batch_size': batch_size, 'shuffle': False}
     train_loader = DataLoader(train_dataset, **kwargs)
     test_loader = DataLoader(test_dataset, **kwargs)
     
     return train_loader, test_loader
 
 
-def Simplex(K):    
+def Simplex(K):
     X = []
     X.append(0)
     for i in range(K-1):
@@ -41,7 +41,7 @@ def Simplex(K):
 
 
 
-def ComputePosterior(data_i,component_k,pi,theta):
+def ComputePosterior(data_i, component_k, pi, theta):
         theta[component_k]
         current_posterior_gamma_ik = 0
         for d in range(len(data_i)):
@@ -52,42 +52,45 @@ def ComputePosterior(data_i,component_k,pi,theta):
 
 
 
-def train(data_type,epoch_num,batch_size,K_mixture,J_parameter_dimension):
+def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
     """pi is a vector of length K, theta is of shape K*J, and in my case K is 10 and J=D=784"""
-    train_loader, test_loader = mnist_loader(data_type,batch_size)
+    train_loader, test_loader = mnist_loader(data_type, batch_size)
 
     # initializing pi in simplex(K-1), and theta of shape K*J
     pi = Simplex(K_mixture)
-    theta = np.random.uniform(0,1,(K_mixture,J_parameter_dimension))
+    theta = np.random.uniform(0,1,(K_mixture, J_parameter_dimension))
+    alpha = np.random.uniform(0,1,(K_mixture))
     
-    for epoch in tqdm(range(epoch_num)):        
+    for epoch in tqdm(range(epoch_num)):
+        theta_numerator = np.zeros((K_mixture, J_parameter_dimension))
+        theta_denominator = np.zeros((K_mixture, J_parameter_dimension))
 
-        # Updating parameters #
-        for k in range(K_mixture):
-            component_k = k
-            #update pi_k
-            pi[k] = 
-            #update theta_{k,d}
-            for d in range(J_parameter_dimension):
-                theta_numerator = 0
-                theta_denumerator = 0
-                for i, data in enumerate(train_loader):
-                    # data[0] is the batch_size*1*28*28 matrix and data[1] is the label
-                    # removing dimensions of size 1
-                    data_i = torch.squeeze(data[0])
-                    # convert the shape of tensor from 28*28 to 784
-                    data_i = data_i.view(-1)
-                    # data_i[d] represents x_{i,d}
-                    current_posterior_gamma_ik = ComputePosterior(data_i,component_k,pi,theta)
-                    theta_numerator = theta_numerator + (current_posterior_gamma_ik * data_i[d])
-                    theta_denumerator = theta_denumerator + current_posterior_gamma_ik
-                theta[k][d] = theta_numerator / theta_denumerator
+        pi_numerator = np.zeros((K_mixture))        
 
-            
+        for i,data in enumerate(train_loader):
+            # data[0] is the batch_size*1*28*28 matrix and data[1] is the label
+            # removing dimensions of size 1
+            data_i = torch.squeeze(data[0])
+            # convert the shape of tensor from 28*28 to 784
+            data_i = data_i.view(-1)
+            # data_i[d] represents x_{i,d}
+            for k in range(K_mixture):
+                # we pass theta which is parameters to compute current posterior
+                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
+                pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
+                for d in range(J_parameter_dimension):
+                    # is it okay if I use posterior_gamma_ik that is computed outside this for?
+                    #posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
+                    theta_numerator[k][d] = theta_numerator[k][d] + (posterior_gamma_ik * data_i[d])
+                    theta_denominator[k][d] = theta_denominator[k][d] + posterior_gamma_ik
 
-        
+        # Now that we have gone through all the data, we can update parameters:
+        theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
+        pi = (pi_numerator + alpha) / ( sum(alpha) + len(train_loader)) # Shall I have a loop or it works in python
 
-if __name__ == '__main__':    
+
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_type', default='binary', type=str)
     parser.add_argument('--epoch_num', default=10, type=int)
