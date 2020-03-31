@@ -65,8 +65,8 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, device):
 def ComputeMarginal(K_mixture, train_loader, pi, theta, device):
     marginal = 0
     for i,data in enumerate(train_loader):
-        data = data.to(device)
-        data_i = torch.squeeze(data[0])
+        data_i = data[0].to(device)
+        data_i = torch.squeeze(data_i)
         data_i = data_i.view(-1)
         sum_k = 0
         for k in range(K_mixture):
@@ -99,8 +99,8 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
         for i,data in enumerate(train_loader):
             # data[0] is the batch_size*1*28*28 matrix and data[1] is the label
             # removing dimensions of size 1
-            data = data.to(device)
-            data_i = torch.squeeze(data[0])
+            data_i = data[0].to(device)
+            data_i = torch.squeeze(data_i)
             # convert the shape of tensor from 28*28 to 784
             data_i = data_i.view(-1)
             # data_i[d] represents x_{i,d}
@@ -113,6 +113,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                     #posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
                     theta_numerator[k][d] = theta_numerator[k][d] + (posterior_gamma_ik * data_i[d])
                     theta_denominator[k][d] = theta_denominator[k][d] + posterior_gamma_ik
+            print('one data point is done, data i:', i)
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
