@@ -6,7 +6,7 @@ import torchvision
 from torchvision.datasets import MNIST
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
-import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 def mnist_loader(data_type,batch_size):
