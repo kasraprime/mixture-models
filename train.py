@@ -63,6 +63,22 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture):
 
 
 
+def ComputeMarginal(K_mixture, train_loader, pi, theta):
+    marginal = 0
+    for i,data in enumerate(train_loader):
+        data_i = torch.squeeze(data[0])
+        data_i = data_i.view(-1)
+        sum_k = 0
+        for k in range(K_mixture):
+            temp = 0
+            for d in range(len(data_i)):
+                temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
+            sum_k = sum_k + (pi[k] * temp)
+        marginal = marginal * sum_k
+
+
+
+
 
 
 def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
@@ -73,6 +89,8 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
     pi = Simplex(K_mixture)
     theta = np.random.uniform(0,1,(K_mixture, J_parameter_dimension))
     alpha = np.random.uniform(0,1,(K_mixture))
+    marginal_log_like = []
+    epoch_list = []
     
     for epoch in tqdm(range(epoch_num)):
         theta_numerator = np.zeros((K_mixture, J_parameter_dimension))
@@ -100,6 +118,16 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
         pi = (pi_numerator + alpha) / ( sum(alpha) + len(train_loader)) # Shall I have a loop or it works in python
+
+        epoch_list.append(epoch)
+        marginal_log_like.append()
+
+    # plot marginal log likelihood for each epoch
+    plt.plot(epoch_list,marginal_log_like)
+    plt.title('Marginal Log Likelihood')
+    plt.xlabel('epoch')
+    plt.ylabel('marginal log likelihood')
+    plt.savefig('Marginal.pdf')
 
 
 
