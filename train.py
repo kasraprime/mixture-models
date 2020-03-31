@@ -118,6 +118,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
 
         epoch_list.append(epoch)
         marginal = ComputeMarginal(K_mixture, train_loader, pi, theta)
+        print('epoch:', epoch, 'marginal log likelihood:', marginal )
         marginal_log_like.append(marginal)
 
     # plot marginal log likelihood for each epoch
