@@ -142,4 +142,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     device_name = 'cuda:'+str(0) if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
+    print('device in use:', device)
     train(args.data_type,args.epoch_num,args.batch_size,args.K_mixture,args.J_parameter_dimension,device)
