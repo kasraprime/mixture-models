@@ -1,4 +1,5 @@
 import argparse
+import math
 import numpy as np
 import torch
 import torchvision
@@ -72,7 +73,7 @@ def ComputeMarginal(K_mixture, train_loader, pi, theta):
             for d in range(len(data_i)):
                 temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             sum_k = sum_k + (pi[k] * temp)
-        marginal = marginal * sum_k
+        marginal = marginal + math.log(sum_k)
     
     return marginal
 
