@@ -41,7 +41,7 @@ def Simplex(K):
     return Z
 
 
-def ComputePosterior(data_i, component_k, pi, theta, K_mixture):
+def ComputePosterior(data_i, component_k, pi, theta, K_mixture, device):
 
         current_posterior_gamma_ik = 0
 
@@ -62,9 +62,10 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture):
         return current_posterior_gamma_ik
 
 
-def ComputeMarginal(K_mixture, train_loader, pi, theta):
+def ComputeMarginal(K_mixture, train_loader, pi, theta, device):
     marginal = 0
     for i,data in enumerate(train_loader):
+        data = data.to(device)
         data_i = torch.squeeze(data[0])
         data_i = data_i.view(-1)
         sum_k = 0
@@ -78,7 +79,7 @@ def ComputeMarginal(K_mixture, train_loader, pi, theta):
     return marginal
 
 
-def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
+def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, device):
     """pi is a vector of length K, theta is of shape K*J, and in my case K is 10 and J=D=784"""
     train_loader, test_loader = mnist_loader(data_type, batch_size)
 
@@ -98,13 +99,14 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
         for i,data in enumerate(train_loader):
             # data[0] is the batch_size*1*28*28 matrix and data[1] is the label
             # removing dimensions of size 1
+            data = data.to(device)
             data_i = torch.squeeze(data[0])
             # convert the shape of tensor from 28*28 to 784
             data_i = data_i.view(-1)
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
-                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture)
+                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture, device)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 for d in range(J_parameter_dimension):
                     # is it okay if I use posterior_gamma_ik that is computed outside this for?
@@ -117,7 +119,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension):
         pi = (pi_numerator + alpha) / ( sum(alpha) + len(train_loader)) # Shall I have a loop or it works in python
 
         epoch_list.append(epoch)
-        marginal = ComputeMarginal(K_mixture, train_loader, pi, theta)
+        marginal = ComputeMarginal(K_mixture, train_loader, pi, theta, device)
         print('epoch:', epoch, 'marginal log likelihood:', marginal )
         marginal_log_like.append(marginal)
 
@@ -137,4 +139,6 @@ if __name__ == '__main__':
     parser.add_argument('--K_mixture', default=10, type=int)
     parser.add_argument('--J_parameter_dimension', default=784, type=int)
     args = parser.parse_args()
-    train(args.data_type,args.epoch_num,args.batch_size,args.K_mixture,args.J_parameter_dimension)
+    device_name = 'cuda:'+str(0) if torch.cuda.is_available() else 'cpu'
+    device = torch.device(device_name)
+    train(args.data_type,args.epoch_num,args.batch_size,args.K_mixture,args.J_parameter_dimension,device)
