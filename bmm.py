@@ -117,7 +117,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
-        pi = (pi_numerator + alpha) / ( sum(alpha) + N_number_data) # Shall I have a loop or it works in python
+        pi = (pi_numerator + alpha - 1) / ( sum(alpha) + N_number_data - K_mixture) # Shall I have a loop or it works in python
 
         epoch_list.append(epoch)
         marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
