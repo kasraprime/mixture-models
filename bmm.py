@@ -137,6 +137,11 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
     #saving the marginal after training is done to compare to other experiments
     pickle.dump( (marginal_log_like[-1]), open( results+'finalmarginal.pkl', "wb" ) )
 
+    #saving the parameters of the model to able to replicate the results
+    pickle.dump( (pi), open( results+'pi.pkl', "wb" ) )
+    pickle.dump( (theta), open( results+'theta.pkl', "wb" ) )
+    pickle.dump( (alpha), open( results+'alpha.pkl', "wb" ) )
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
