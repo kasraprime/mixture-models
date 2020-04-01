@@ -1,5 +1,7 @@
 import argparse
 import math
+import os
+import pickle
 import numpy as np
 import torch
 import torchvision
@@ -123,6 +125,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
         marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
         print('epoch:', epoch, 'marginal log likelihood:', marginal )
         marginal_log_like.append(marginal)
+        pickle.dump( ([epoch_list, marginal_log_like]), open( results+'epoch_marginal.pkl', "wb" ) )
 
     # plot marginal log likelihood for each epoch
     plt.plot(epoch_list,marginal_log_like)
@@ -131,9 +134,13 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
     plt.ylabel('marginal log likelihood')
     plt.savefig('Marginal.pdf')
 
+    #saving the marginal after training is done to compare to other experiments
+    pickle.dump( (marginal_log_like[-1]), open( results+'finalmarginal.pkl', "wb" ) )
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--experiment_name', default='Random', type=str)
     parser.add_argument('--data_type', default='binary', type=str)
     parser.add_argument('--epoch_num', default=10, type=int)
     parser.add_argument('--batch_size', default=1, type=int)
@@ -142,5 +149,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     device_name = 'cuda:'+str(0) if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
+
+    
+    results = './results/' + args.experiment_name + '/'
+    if not os.path.exists(results):
+        os.makedirs(results)
+
     print('device in use:', device)
-    train(args.data_type,args.epoch_num,args.batch_size,args.K_mixture,args.J_parameter_dimension,device)
+    train(args.data_type,args.epoch_num,args.batch_size,args.K_mixture,args.J_parameter_dimension, device, results)
