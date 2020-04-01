@@ -68,9 +68,10 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
 def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
     marginal = 0
     for i,data in enumerate(train_loader):
-        data_i = data[0].to(device)
+        #data_i = data[0].to(device)
+        data_i = data[0]
         data_i = torch.squeeze(data_i)
-        data_i = data_i.view(batch_size, -1)
+        data_i = data_i.view(-1)
         sum_k = 0
         for k in range(K_mixture):
             temp = 1
@@ -102,10 +103,11 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
         for i,data in enumerate(train_loader):
             # data[0] is the batch_size*1*28*28 matrix and data[1] is the label
             # removing dimensions of size 1
-            data_i = data[0].to(device)
+            #data_i = data[0].to(device)
+            data_i = data[0]
             data_i = torch.squeeze(data_i)
             # convert the shape of tensor from 28*28 to 784
-            data_i = data_i.view(batch_size,-1)
+            data_i = data_i.view(-1)
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
