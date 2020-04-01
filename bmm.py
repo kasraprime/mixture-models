@@ -81,7 +81,7 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
     return marginal
 
 
-def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, device):
+def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, device, results):
     """pi is a vector of length K, theta is of shape K*J, and in my case K is 10 and J=D=784"""
     train_loader, test_loader, N_number_data = mnist_loader(data_type, batch_size)
 
@@ -150,7 +150,6 @@ if __name__ == '__main__':
     device_name = 'cuda:'+str(0) if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
 
-    
     results = './results/' + args.experiment_name + '/'
     if not os.path.exists(results):
         os.makedirs(results)
