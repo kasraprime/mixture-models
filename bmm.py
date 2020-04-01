@@ -9,6 +9,7 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
+import matplotlib
 import matplotlib.pyplot as plt
 
 def mnist_loader(data_type,batch_size):
@@ -151,6 +152,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
             for d in range(J_parameter_dimension):
                 sampled_data[d] = np.random.binomial(size=1, n=1, p= theta[k][d])
             sampled_data = sampled_data.reshape(28,28)
+            matplotlib.image.imsave(results+'component'+str(k)+'instance'+str(instance)+'.png', sampled_data) 
             all_sampled_data.append(sampled_data)
 
     pickle.dump( (all_sampled_data), open( results+'sampledImages.pkl', "wb" ) )        
