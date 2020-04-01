@@ -142,6 +142,19 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
     pickle.dump( (theta), open( results+'theta.pkl', "wb" ) )
     pickle.dump( (alpha), open( results+'alpha.pkl', "wb" ) )
 
+    # Note that we have K components each of which are J dimensional where J=D and D is the number of pixels. So we can show images (instances) based on each K component
+    # saving some instances per component.
+    all_sampled_data = []    
+    for k in range(K_mixture):
+        for instance in range(3):
+            sampled_data = np.zeros(J_parameter_dimension)
+            for d in range(J_parameter_dimension):
+                sampled_data[d] = np.random.binomial(size=1, n=1, p= theta[k][d])
+            sampled_data = sampled_data.reshape(28,28)
+            all_sampled_data.append(sampled_data)
+
+    pickle.dump( (all_sampled_data), open( results+'sampledImages.pkl', "wb" ) )        
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
