@@ -118,7 +118,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                     #posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
                     theta_numerator[k][d] = theta_numerator[k][d] + (posterior_gamma_ik * data_i[d])
                     theta_denominator[k][d] = theta_denominator[k][d] + posterior_gamma_ik
-            print('one batch is done, data passed so far:', (i+1)*batch_size)
+            print('epoch:', epoch, 'data processed so far:', (i+1)*batch_size)
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
