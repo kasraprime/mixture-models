@@ -49,12 +49,12 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
         current_posterior_gamma_ik = 0
 
         # Computing numerator        
-        numerator =  torch.prod((theta[component_k]**data_i)) * torch.prod(( (1 - theta[component_k])**(1 - data_i) ) )
+        numerator =  np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
 
         # Computing denominator
         denominator = 0
         for k in range(K_mixture):
-            temp = torch.prod((theta[k]**data_i)) * torch.prod(( (1 - theta[k])**(1 - data_i) ))
+            temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
             denominator = denominator + (pi[k] * temp)
 
         current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
@@ -68,9 +68,10 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
         data_i = data[0]
         data_i = torch.squeeze(data_i)
         data_i = data_i.view(-1)
+        data_i = data_i.numpy()
         sum_k = 0
         for k in range(K_mixture):            
-            temp = torch.prod((theta[k]**data_i)) * torch.prod(( (1 - theta[k])**(1 - data_i) ))
+            temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
             sum_k = sum_k + (pi[k] * temp)
         marginal = marginal + math.log(sum_k)
     
@@ -102,6 +103,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
             data_i = torch.squeeze(data_i)
             # convert the shape of tensor from 28*28 to 784
             data_i = data_i.view(-1)
+            data_i = data_i.numpy()
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
