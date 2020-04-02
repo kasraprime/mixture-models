@@ -111,7 +111,8 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
                 theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik
-            print('epoch:', epoch, 'data processed so far:', (i+1)*batch_size)
+            if ((i+1)*batch_size)%2000 == 0:
+                print('epoch:', epoch, 'data processed so far:', (i+1)*batch_size)
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
