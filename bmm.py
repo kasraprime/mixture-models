@@ -45,31 +45,30 @@ def Simplex(K):
 
 
 def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
+    current_posterior_gamma_ik = 0.0
 
-        current_posterior_gamma_ik = 0
+    # Computing numerator        
+    numerator =  np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
 
-        # Computing numerator        
-        numerator =  np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
+    # Computing denominator
+    denominator = 0.0
+    for k in range(K_mixture):
+        temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
+        denominator = denominator + (pi[k] * temp)
 
-        # Computing denominator
-        denominator = 0
-        for k in range(K_mixture):
-            temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
-            denominator = denominator + (pi[k] * temp)
-
-        current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
-        return current_posterior_gamma_ik
+    current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
+    return current_posterior_gamma_ik
 
 
 def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
-    marginal = 0
+    marginal = 0.0
     for i,data in enumerate(train_loader):
         #data_i = data[0].to(device)
         data_i = data[0]
         data_i = torch.squeeze(data_i)
         data_i = data_i.view(-1)
         data_i = data_i.numpy()
-        sum_k = 0
+        sum_k = 0.0
         for k in range(K_mixture):            
             temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
             sum_k = sum_k + (pi[k] * temp)
@@ -112,15 +111,15 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                 theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
                 theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik
             if ((i+1)*batch_size)%2000 == 0:
-                print('epoch:', epoch, 'data processed so far:', (i+1)*batch_size)
+                print('epoch:', epoch+1, 'data processed so far:', (i+1)*batch_size)
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
         pi = (pi_numerator + alpha - 1) / ( sum(alpha) + N_number_data - K_mixture) # Shall I have a loop or it works in python
 
-        epoch_list.append(epoch)
+        epoch_list.append(epoch+1)
         marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
-        print('epoch:', epoch, 'marginal log likelihood:', marginal )
+        print('epoch:', epoch+1, 'marginal log likelihood:', marginal )
         marginal_log_like.append(marginal)
         pickle.dump( ([epoch_list, marginal_log_like]), open( results+'epoch_marginal.pkl', "wb" ) )
 
