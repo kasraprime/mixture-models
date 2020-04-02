@@ -48,13 +48,17 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
 
         current_posterior_gamma_ik = 0
 
-        # Computing numerator        
-        numerator =  (theta[component_k]**data_i) * ( (1 - theta[component_k])**(1 - data_i) ) 
-
+        # Computing numerator
+        numerator = 1
+        for d in range(J_parameter_dimension):
+            numerator = numerator * ( (theta[component_k][d]**data_i[d]) * ( (1 - theta[component_k][d])**(1 - data_i[d]) ) )
+        
         # Computing denominator
         denominator = 0
-        for k in range(K_mixture):            
-            temp = (theta[k]**data_i) * ( (1 - theta[k])**(1 - data_i) )            
+        for k in range(K_mixture):
+            temp = 1
+            for d in range(J_parameter_dimension):
+                temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             denominator = denominator + (pi[k] * temp)
 
         current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
@@ -69,8 +73,10 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
         data_i = torch.squeeze(data_i)
         data_i = data_i.view(-1)
         sum_k = 0
-        for k in range(K_mixture):            
-            temp = (theta[k]**data_i) * ( (1 - theta[k])**(1 - data_i) )             
+        for k in range(K_mixture):
+            temp = 1
+            for d in range(J_parameter_dimension):
+                temp = temp * ( (theta[k][d]**data_i[d]) * ( (1 - theta[k][d])**(1 - data_i[d]) ) )
             sum_k = sum_k + (pi[k] * temp)
         marginal = marginal + math.log(sum_k)
     
@@ -107,8 +113,11 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                 # we pass theta which is parameters to compute current posterior
                 posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
-                theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
-                theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik                                                        
+                for d in range(J_parameter_dimension):
+                    # is it okay if I use posterior_gamma_ik that is computed outside this for?
+                    #posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta)
+                    theta_numerator[k][d] = theta_numerator[k][d] + (posterior_gamma_ik * data_i[d])
+                    theta_denominator[k][d] = theta_denominator[k][d] + posterior_gamma_ik
             print('epoch:', epoch, 'data processed so far:', (i+1)*batch_size)
 
         # Now that we have gone through all the data, we can update parameters:
