@@ -60,6 +60,25 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
     return current_posterior_gamma_ik
 
 
+def ComputeLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
+
+    current_posterior_gamma_ik = 0.0
+
+    # Computing numerator
+    numerator = 1.0        
+    numerator = np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k]))))
+    #numerator = np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
+
+    # Computing denominator
+    denominator = 0.0
+    for k in range(K_mixture):
+        temp = np.add (np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k]))))        
+        denominator = denominator + (pi[k] * temp)
+    
+    current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
+    return current_posterior_gamma_ik,numerator,denominator
+
+
 def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
     marginal = 0.0
     for i,data in enumerate(train_loader):
@@ -72,7 +91,7 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
         for k in range(K_mixture):            
             temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
             sum_k = sum_k + (pi[k] * temp)
-        marginal = marginal + math.log(sum_k)
+        marginal = marginal + np.log(sum_k)
     
     return marginal
 
@@ -106,7 +125,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
-                posterior_gamma_ik = ComputePosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
+                posterior_gamma_ik = ComputeLogPosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
                 theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik
