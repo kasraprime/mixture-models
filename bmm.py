@@ -59,7 +59,29 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
         temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
         denominator = denominator + (pi[k] * temp)
 
-    current_posterior_gamma_ik = numerator / (denominator + epsilon)
+    denominator = denominator + epsilon
+    current_posterior_gamma_ik = numerator / denominator
+    return current_posterior_gamma_ik
+
+
+def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
+    current_posterior_gamma_ik = 0.0
+
+    # Computing numerator        
+    numerator =  np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
+    numerator = pi[component_k] * numerator
+
+    # Computing denominator
+    denominator = 0.0
+    for k in range(K_mixture):
+        temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
+        denominator = denominator + (pi[k] * temp)
+
+    numerator = numerator + epsilon
+    denominator = denominator + epsilon
+    current_posterior_gamma_ik = np.log(numerator) - np.log(denominator )
+    current_posterior_gamma_ik = np.exp(current_posterior_gamma_ik)
+
     return current_posterior_gamma_ik
 
 
