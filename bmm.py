@@ -64,7 +64,7 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
     return current_posterior_gamma_ik
 
 
-def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
+def ComputeExpPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
     current_posterior_gamma_ik = 0.0
 
     # Computing numerator        
@@ -85,7 +85,7 @@ def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_paramete
     return current_posterior_gamma_ik
 
 
-def ComputeLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
+def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
 
     current_posterior_gamma_ik = 0.0
 
@@ -99,9 +99,11 @@ def ComputeLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_d
     for k in range(K_mixture):
         temp = np.add (np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k]))))
         denominator = denominator + (pi[k] * temp)
-    
-    current_posterior_gamma_ik = numerator - np.log(denominator)
-    return current_posterior_gamma_ik,numerator,denominator
+        
+    denominator = denominator + epsilon
+    denominator = np.log(denominator)
+    current_posterior_gamma_ik = np.exp(numerator - denominator)
+    return current_posterior_gamma_ik
 
 
 def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
@@ -128,9 +130,9 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
     # initializing pi in simplex(K-1), and theta of shape K*J
     pi = Simplex(K_mixture)
     theta = np.random.uniform(0,1,(K_mixture, J_parameter_dimension))
-    #alpha = np.random.uniform(0,1,(K_mixture))
-    alpha_constant = np.random.uniform(0,1)
-    alpha = np.full(K_mixture, alpha_constant)
+    alpha = np.random.uniform(1,10,(K_mixture))
+    #alpha_constant = np.random.uniform(1,10)
+    #alpha = np.full(K_mixture, alpha_constant)
     marginal_log_like = []
     epoch_list = []
     
