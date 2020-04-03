@@ -49,6 +49,7 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
 
     # Computing numerator        
     numerator =  np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
+    numerator = pi[component_k] * numerator
 
     # Computing denominator
     denominator = 0.0
@@ -56,7 +57,7 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
         temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
         denominator = denominator + (pi[k] * temp)
 
-    current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
+    current_posterior_gamma_ik = numerator / (denominator + 1e-7)
     return current_posterior_gamma_ik
 
 
@@ -66,16 +67,16 @@ def ComputeLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_d
 
     # Computing numerator
     numerator = 1.0        
-    numerator = np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k]))))
-    #numerator = np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
+    numerator = np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k]))))    
+    numerator = np.log(pi[component_k]) + numerator
 
     # Computing denominator
     denominator = 0.0
     for k in range(K_mixture):
         temp = np.add (np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k]))))        
-        denominator = denominator + (pi[k] * temp)
+        denominator = denominator + (np.log(pi[k]) + temp)
     
-    current_posterior_gamma_ik = (pi[component_k] * numerator) / denominator
+    current_posterior_gamma_ik = numerator - denominator
     return current_posterior_gamma_ik,numerator,denominator
 
 
