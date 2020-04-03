@@ -147,7 +147,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
     plt.title('Marginal Log Likelihood')
     plt.xlabel('epoch')
     plt.ylabel('marginal log likelihood')
-    plt.savefig('Marginal.pdf')
+    plt.savefig(results+'Marginal.pdf')
 
     #saving the marginal after training is done to compare to other experiments
     pickle.dump( (marginal_log_like[-1]), open( results+'finalmarginal.pkl', "wb" ) )
