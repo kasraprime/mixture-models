@@ -12,6 +12,8 @@ from tqdm import tqdm
 import matplotlib
 import matplotlib.pyplot as plt
 
+epsilon = 1e-7
+
 def mnist_loader(data_type,batch_size):
     """Setup MNIST data loader."""
     
@@ -57,7 +59,7 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
         temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
         denominator = denominator + (pi[k] * temp)
 
-    current_posterior_gamma_ik = numerator / (denominator + 1e-7)
+    current_posterior_gamma_ik = numerator / (denominator + epsilon)
     return current_posterior_gamma_ik
 
 
@@ -66,17 +68,17 @@ def ComputeLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_d
     current_posterior_gamma_ik = 0.0
 
     # Computing numerator
-    numerator = 1.0        
-    numerator = np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k]))))    
+    numerator = 1.0
+    numerator = np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k]))))
     numerator = np.log(pi[component_k]) + numerator
 
     # Computing denominator
     denominator = 0.0
     for k in range(K_mixture):
-        temp = np.add (np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k]))))        
-        denominator = denominator + (np.log(pi[k]) + temp)
+        temp = np.add (np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k]))))
+        denominator = denominator + (pi[k] * temp)
     
-    current_posterior_gamma_ik = numerator - denominator
+    current_posterior_gamma_ik = numerator - np.log(denominator)
     return current_posterior_gamma_ik,numerator,denominator
 
 
@@ -89,7 +91,7 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
         data_i = data_i.view(-1)
         data_i = data_i.numpy()
         sum_k = 0.0
-        for k in range(K_mixture):            
+        for k in range(K_mixture):
             temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
             sum_k = sum_k + (pi[k] * temp)
         marginal = marginal + np.log(sum_k)
@@ -134,8 +136,8 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                 print('epoch:', epoch+1, 'data processed so far:', (i+1)*batch_size)
 
         # Now that we have gone through all the data, we can update parameters:
-        theta = theta_numerator / theta_denominator # Shall I have a loop or it works in python
-        pi = (pi_numerator + alpha - 1) / ( sum(alpha) + N_number_data - K_mixture) # Shall I have a loop or it works in python
+        theta = theta_numerator / (theta_denominator + epsilon)
+        pi = (pi_numerator + alpha - 1) / ( sum(alpha) + N_number_data - K_mixture + epsilon)
 
         epoch_list.append(epoch+1)
         marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
