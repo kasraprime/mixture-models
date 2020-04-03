@@ -152,7 +152,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
-                posterior_gamma_ik = ComputeLogPosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
+                posterior_gamma_ik = ComputeExpLogPosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
                 theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik
