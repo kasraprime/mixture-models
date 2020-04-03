@@ -106,7 +106,9 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
     # initializing pi in simplex(K-1), and theta of shape K*J
     pi = Simplex(K_mixture)
     theta = np.random.uniform(0,1,(K_mixture, J_parameter_dimension))
-    alpha = np.random.uniform(0,1,(K_mixture))
+    #alpha = np.random.uniform(0,1,(K_mixture))
+    alpha_constant = np.random.uniform(0,1)
+    alpha = np.full(K_mixture, alpha_constant)
     marginal_log_like = []
     epoch_list = []
     
