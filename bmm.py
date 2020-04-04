@@ -90,20 +90,20 @@ def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_paramete
 
     current_posterior_gamma_ik = 0.0
 
-    # Computing numerator
-    numerator = 1.0
-    numerator = np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k]))))
-    numerator = np.log(pi[component_k]) + numerator
+    # Computing log of numerator    
+    log_numerator = np.log(pi[component_k]) + (np.add (np.matmul(data_i,np.log(theta[component_k])) , np.matmul((1-data_i),(np.log(1-theta[component_k])))))
 
-    # Computing denominator
-    denominator = 0.0
-    for k in range(K_mixture):
-        temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
-        denominator = denominator + (pi[k] * temp)
-        
-    denominator = denominator + epsilon
-    denominator = np.log(denominator)
-    current_posterior_gamma_ik = np.exp(numerator - denominator)
+    # Computing log of denominator    
+    sum_exp_list = np.zeros(K_mixture)
+    
+    for k in range(K_mixture):        
+        temp = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))        
+        sum_exp_list[k] = np.exp(temp)
+    
+    log_denominator = logsumexp(sum_exp_list)
+
+    current_posterior_gamma_ik = np.exp(log_numerator - log_denominator)
+
     return current_posterior_gamma_ik
 
 
@@ -118,6 +118,7 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
         data_i = data_i.numpy()
         
         sum_exp_list = np.zeros(K_mixture)
+
         for k in range(K_mixture):
             temp = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))
             sum_exp_list[k] = np.exp(temp)
