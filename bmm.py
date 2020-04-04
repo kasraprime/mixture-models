@@ -147,10 +147,8 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                 print('gamma denominator:', denominator)
                 print('posterior:', posterior_gamma_ik)
                 print('pi_numerator:',pi_numerator)
-                print('sum theta_num[0] :', np.sum(theta_numerator[0]))
-                print('sum theta_denom[0]',np.sum(theta_denominator[0]))                
-                print('sum theta_num[1] :', np.sum(theta_numerator[1]))
-                print('sum theta_denom[1]',np.sum(theta_denominator[1]))
+                print('theta_numerator:',theta_numerator)
+                print('theta_denominator:',theta_denominator)
 
         print('before update')        
         print('pi:',pi)               
