@@ -154,7 +154,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
 
         print('before update')        
         print('pi:',pi)               
-        print('sum of theta:',np.sum(theta))
+        print('theta:',theta)
 
         # Now that we have gone through all the data, we can update parameters:
         theta = (theta_numerator + epsilon) / (theta_denominator + epsilon)
@@ -162,7 +162,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
 
         print('after update:')        
         print('pi:',pi)
-        print('sum of theta:', np.sum(theta))
+        print('theta:', theta)
 
         epoch_list.append(epoch+1)
         marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
