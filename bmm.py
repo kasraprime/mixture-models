@@ -76,8 +76,7 @@ def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_paramete
     sum_exp_list = np.zeros(K_mixture)
     
     for k in range(K_mixture):        
-        temp = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))        
-        sum_exp_list[k] = np.exp(temp)
+        sum_exp_list[k] = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))
     
     log_denominator = logsumexp(sum_exp_list)
 
@@ -99,8 +98,7 @@ def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, d
         sum_exp_list = np.zeros(K_mixture)
 
         for k in range(K_mixture):
-            temp = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))
-            sum_exp_list[k] = np.exp(temp)
+            sum_exp_list[k] = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))
 
         marginal = marginal + logsumexp(sum_exp_list)
     
@@ -143,6 +141,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
                 theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
                 theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik
             if ((i+1)*batch_size)%2000 == 0:
+                print('*********************')
                 print('epoch:', epoch+1, 'data processed so far:', (i+1)*batch_size)
                 print('gamma numerator:', numerator)
                 print('gamma denominator:', denominator)
