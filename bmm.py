@@ -11,6 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 import matplotlib
 import matplotlib.pyplot as plt
+from scipy.special import logsumexp
 
 epsilon = 1e-7
 
@@ -107,18 +108,21 @@ def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_paramete
 
 
 def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
-    marginal = 0.0
+
+    marginal = 0.0    
     for i,data in enumerate(train_loader):
         #data_i = data[0].to(device)
         data_i = data[0]
         data_i = torch.squeeze(data_i)
         data_i = data_i.view(-1)
         data_i = data_i.numpy()
-        sum_k = 0.0
+        
+        sum_exp_list = np.zeros(K_mixture)
         for k in range(K_mixture):
-            temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
-            sum_k = sum_k + (pi[k] * temp)
-        marginal = marginal + np.log(sum_k)
+            temp = np.log(pi[k]) + (np.add(np.matmul(data_i,np.log(theta[k])) , np.matmul((1-data_i),(np.log(1-theta[k])))))
+            sum_exp_list[k] = np.exp(temp)
+
+        marginal = marginal + logsumexp(sum_exp_list)
     
     return marginal
 
