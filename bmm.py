@@ -62,28 +62,7 @@ def ComputePosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dime
 
     denominator = denominator + epsilon
     current_posterior_gamma_ik = numerator / denominator
-    return current_posterior_gamma_ik
-
-
-def ComputeExpPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
-    current_posterior_gamma_ik = 0.0
-
-    # Computing numerator        
-    numerator =  np.prod((theta[component_k]**data_i)) * np.prod(( (1 - theta[component_k])**(1 - data_i) ) )
-    numerator = pi[component_k] * numerator
-
-    # Computing denominator
-    denominator = 0.0
-    for k in range(K_mixture):
-        temp = np.prod((theta[k]**data_i)) * np.prod(( (1 - theta[k])**(1 - data_i) ))
-        denominator = denominator + (pi[k] * temp)
-
-    numerator = numerator + epsilon
-    denominator = denominator + epsilon
-    current_posterior_gamma_ik = np.log(numerator) - np.log(denominator)
-    current_posterior_gamma_ik = np.exp(current_posterior_gamma_ik)
-
-    return current_posterior_gamma_ik
+    return current_posterior_gamma_ik, numerator, denominator
 
 
 def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_parameter_dimension, device):
@@ -104,7 +83,7 @@ def ComputeExpLogPosterior(data_i, component_k, pi, theta, K_mixture, J_paramete
 
     current_posterior_gamma_ik = np.exp(log_numerator - log_denominator)
 
-    return current_posterior_gamma_ik
+    return current_posterior_gamma_ik, log_numerator, log_denominator
 
 
 def ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size):
@@ -159,16 +138,32 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
             # data_i[d] represents x_{i,d}
             for k in range(K_mixture):
                 # we pass theta which is parameters to compute current posterior
-                posterior_gamma_ik = ComputeExpLogPosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
+                posterior_gamma_ik, numerator, denominator = ComputeExpLogPosterior(data_i, k, pi, theta, K_mixture, J_parameter_dimension, device)
                 pi_numerator[k] = pi_numerator[k] + posterior_gamma_ik
                 theta_numerator[k] = theta_numerator[k] + (posterior_gamma_ik * data_i)
                 theta_denominator[k] = theta_denominator[k] + posterior_gamma_ik
             if ((i+1)*batch_size)%2000 == 0:
                 print('epoch:', epoch+1, 'data processed so far:', (i+1)*batch_size)
+                print('gamma numerator:', numerator)
+                print('gamma denominator:', denominator)
+                print('posterior:', posterior_gamma_ik)
+                print('pi_numerator:',pi_numerator)
+                print('sum theta_num[0] :', np.sum(theta_numerator[0]))
+                print('sum theta_denom[0]',np.sum(theta_denominator[0]))                
+                print('sum theta_num[1] :', np.sum(theta_numerator[1]))
+                print('sum theta_denom[1]',np.sum(theta_denominator[1]))
+
+        print('before update')        
+        print('pi:',pi)               
+        print('sum of theta:',np.sum(theta))
 
         # Now that we have gone through all the data, we can update parameters:
         theta = theta_numerator / (theta_denominator + epsilon)
         pi = (pi_numerator + alpha - 1) / ( sum(alpha) + N_number_data - K_mixture + epsilon)
+
+        print('after update:')        
+        print('pi:',pi)
+        print('sum of theta:', np.sum(theta))
 
         epoch_list.append(epoch+1)
         marginal = ComputeMarginal(K_mixture, J_parameter_dimension, train_loader, pi, theta, device, batch_size)
