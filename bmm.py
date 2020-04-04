@@ -157,7 +157,7 @@ def train(data_type, epoch_num, batch_size, K_mixture, J_parameter_dimension, de
         print('sum of theta:',np.sum(theta))
 
         # Now that we have gone through all the data, we can update parameters:
-        theta = theta_numerator / (theta_denominator + epsilon)
+        theta = (theta_numerator + epsilon) / (theta_denominator + epsilon)
         pi = (pi_numerator + alpha - 1) / ( sum(alpha) + N_number_data - K_mixture + epsilon)
 
         print('after update:')        
